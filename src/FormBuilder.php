@@ -1324,7 +1324,7 @@ class FormBuilder
      *
      * @return mixed
      */
-    public function getValueAttribute(string|null $name, string|null|array $value = null): mixed
+    public function getValueAttribute(string|null $name, string|null|array|Collection $value = null): mixed
     {
         if (is_null($name)) {
             return $value;
