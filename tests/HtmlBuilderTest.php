@@ -166,4 +166,66 @@ class HtmlBuilderTest extends PHPUnit\Framework\TestCase
 
         $this->assertEquals('class="class-a class-c"', trim($result));
     }
+
+    public function testEntitiesAndDecode()
+    {
+        $original = '<div>"Test" & bar</div>';
+
+        $encoded = $this->htmlBuilder->entities($original);
+        $this->assertEquals('&lt;div&gt;&quot;Test&quot; &amp; bar&lt;/div&gt;', $encoded);
+
+        $decoded = $this->htmlBuilder->decode($encoded);
+        $this->assertEquals($original, $decoded);
+    }
+
+    public function testScriptAndStyle()
+    {
+        $script = $this->htmlBuilder->script('js/app.js');
+        $style  = $this->htmlBuilder->style('css/style.css');
+
+        $this->assertEquals('<script src="http://localhost/js/app.js"></script>', $script);
+        $this->assertEquals('<link media="all" type="text/css" rel="stylesheet" href="http://localhost/css/style.css">', $style);
+    }
+
+    public function testSecureAndAssetLinks()
+    {
+        $secure = $this->htmlBuilder->secureLink('foo/bar', 'Secure');
+        $asset = $this->htmlBuilder->linkAsset('file.css');
+        $secureAsset = $this->htmlBuilder->linkSecureAsset('file.css', 'CSS');
+
+        $this->assertEquals('<a href="https://localhost/foo/bar">Secure</a>', $secure);
+        $this->assertEquals('<a href="http://localhost/file.css">http://localhost/file.css</a>', $asset);
+        $this->assertEquals('<a href="https://localhost/file.css">CSS</a>', $secureAsset);
+    }
+
+    public function testLinkRoute()
+    {
+        $routes = new RouteCollection();
+        $routes->add(new \Illuminate\Routing\Route(['GET'], 'user/{id}', ['as' => 'user.show']));
+        $this->urlGenerator->setRoutes($routes);
+
+        $result = $this->htmlBuilder->linkRoute('user.show', 'Profile', 5);
+
+        $this->assertEquals('<a href="http://localhost/user/5">Profile</a>', $result);
+    }
+
+    public function testLinkAction()
+    {
+        $routes = new RouteCollection();
+        $routes->add(new \Illuminate\Routing\Route(['GET'], 'home', ['uses' => 'HomeController@index', 'controller' => 'HomeController@index']));
+        $this->urlGenerator->setRoutes($routes);
+
+        $result = $this->htmlBuilder->linkAction('HomeController@index', 'Home');
+
+        $this->assertEquals('<a href="http://localhost/home">Home</a>', $result);
+    }
+
+    public function testEmailAndNbsp()
+    {
+        $builder = m::mock('LaravelLux\\Html\\HtmlBuilder[obfuscate]', [$this->urlGenerator, $this->viewFactory]);
+        $builder->shouldReceive('obfuscate')->andReturnUsing(function ($arg) { return $arg; });
+
+        $this->assertEquals('person&#64;example.com', $builder->email('person@example.com'));
+        $this->assertEquals('&nbsp;&nbsp;&nbsp;', $this->htmlBuilder->nbsp(3));
+    }
 }
