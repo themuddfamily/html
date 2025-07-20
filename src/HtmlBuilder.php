@@ -438,7 +438,7 @@ class HtmlBuilder
                 if ($attribute_name === "class") {
                     $attributes['class'] = [...$attribute_value, ...$attributes['class'] ?? []];
                 } else {
-                    $attributes[$attribute_name] = is_array($attribute_value) && !$attribute_value[0]
+                    $attributes[$attribute_name] = is_array($attribute_value) && isset($attribute_value[0]) && !$attribute_value[0]
                         ? array_key_first($attribute_value)
                         : $attribute_value;
                 }
