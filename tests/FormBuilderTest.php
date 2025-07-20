@@ -907,6 +907,97 @@ class FormBuilderTest extends PHPUnit\Framework\TestCase
         $this->assertEquals('<input type="submit" value="button">', $input);
     }
 
+    public function testWithoutCsrf()
+    {
+        $form = $this->formBuilder->withoutCsrf()->open(['method' => 'POST']);
+        $this->assertEquals('<form method="POST" action="http://localhost/foo" accept-charset="UTF-8">', $form);
+
+        $form = $this->formBuilder->open(['method' => 'POST']);
+        $this->assertEquals('<form method="POST" action="http://localhost/foo" accept-charset="UTF-8"><input name="_token" type="hidden" value="abc">', $form);
+
+        $form = $this->formBuilder->withoutCsrf(true)->open(['method' => 'POST']);
+        $this->assertEquals('<form method="POST" action="http://localhost/foo" accept-charset="UTF-8"><input name="_token" type="hidden" value="abc">', $form);
+    }
+
+    public function testOldInputIsEmpty()
+    {
+        $newBuilder = new FormBuilder($this->htmlBuilder, $this->urlGenerator, $this->viewFactory);
+        $this->assertFalse($newBuilder->oldInputIsEmpty());
+
+        $session = m::mock('Illuminate\\Contracts\\Session\\Session');
+        $session->shouldReceive('getOldInput')->once()->andReturn([]);
+        $this->formBuilder->setSessionStore($session);
+        $this->assertTrue($this->formBuilder->oldInputIsEmpty());
+
+        $session = m::mock('Illuminate\\Contracts\\Session\\Session');
+        $session->shouldReceive('getOldInput')->once()->andReturn(['foo' => 'bar']);
+        $this->formBuilder->setSessionStore($session);
+        $this->assertFalse($this->formBuilder->oldInputIsEmpty());
+    }
+
+    public function testGetIdAttribute()
+    {
+        $ref = new ReflectionMethod(FormBuilder::class, 'getIdAttribute');
+        $ref->setAccessible(true);
+
+        $this->assertEquals('explicit', $ref->invoke($this->formBuilder, 'foo', ['id' => 'explicit']));
+
+        $this->formBuilder->label('field');
+        $this->assertEquals('field', $ref->invoke($this->formBuilder, 'field', []));
+
+        $this->assertEquals('', $ref->invoke($this->formBuilder, 'other', []));
+    }
+
+    public function testGetActionMethods()
+    {
+        $routes = new RouteCollection();
+        $routes->add(new Route(['GET'], 'home', ['as' => 'home']));
+        $routes->add(new Route(['GET'], 'user/{id}', ['as' => 'user.show']));
+        $routes->add(new Route(['GET'], 'foo/{id}', ['uses' => 'FooController@bar', 'controller' => 'FooController@bar']));
+        $routes->add(new Route(['GET'], 'simple', ['uses' => 'FooController@simple', 'controller' => 'FooController@simple']));
+        $routes->refreshNameLookups();
+        $routes->refreshActionLookups();
+        $this->urlGenerator->setRoutes($routes);
+
+        $refAction = new ReflectionMethod(FormBuilder::class, 'getAction');
+        $refAction->setAccessible(true);
+        $refUrl = new ReflectionMethod(FormBuilder::class, 'getUrlAction');
+        $refUrl->setAccessible(true);
+        $refRoute = new ReflectionMethod(FormBuilder::class, 'getRouteAction');
+        $refRoute->setAccessible(true);
+        $refController = new ReflectionMethod(FormBuilder::class, 'getControllerAction');
+        $refController->setAccessible(true);
+
+        $this->assertEquals('http://localhost/bar', $refUrl->invoke($this->formBuilder, 'bar'));
+        $this->assertEquals('http://localhost/bar/baz', $refUrl->invoke($this->formBuilder, ['bar', 'baz']));
+
+        $this->assertEquals('http://localhost/user/5', $refRoute->invoke($this->formBuilder, ['user.show', 5]));
+        $this->assertEquals('http://localhost/home', $refRoute->invoke($this->formBuilder, 'home'));
+
+        $this->assertEquals('http://localhost/foo/5', $refController->invoke($this->formBuilder, ['FooController@bar', 5]));
+        $this->assertEquals('http://localhost/simple', $refController->invoke($this->formBuilder, 'FooController@simple'));
+
+        $this->assertEquals('http://localhost/bar', $refAction->invoke($this->formBuilder, ['url' => 'bar']));
+        $this->assertEquals('http://localhost/user/5', $refAction->invoke($this->formBuilder, ['route' => ['user.show', 5]]));
+        $this->assertEquals('http://localhost/simple', $refAction->invoke($this->formBuilder, ['action' => 'FooController@simple']));
+        $this->assertEquals('http://localhost/foo', $refAction->invoke($this->formBuilder, []));
+    }
+
+    public function testGetMethod()
+    {
+        $ref = new ReflectionMethod(FormBuilder::class, 'getMethod');
+        $ref->setAccessible(true);
+
+        $this->assertEquals('GET', $ref->invoke($this->formBuilder, 'get'));
+        $this->assertEquals('POST', $ref->invoke($this->formBuilder, 'put'));
+    }
+
+    public function testCallUndefinedMethodThrowsException()
+    {
+        $this->expectException(BadMethodCallException::class);
+        $this->formBuilder->thisMethodDoesNotExist();
+    }
+
     protected function setModel(array $data, $object = true)
     {
         if ($object) {
