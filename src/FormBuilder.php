@@ -77,6 +77,13 @@ class FormBuilder
      */
     protected array $labels = [];
 
+    /**
+     * Temporary storage for repeated old input payloads.
+     *
+     * @var array
+     */
+    protected array $payload = [];
+
     protected ?Request $request;
 
     /**
