@@ -183,7 +183,7 @@ class FormBuilderTest extends PHPUnit\Framework\TestCase
 
         $form1 = $this->formBuilder->password('password');
 
-        $this->assertEquals('<input name="password" type="password" value="">', $form1);
+        $this->assertEquals('<input name="password" type="password">', $form1);
     }
 
     public function testFilesNotFilled()
@@ -258,8 +258,8 @@ class FormBuilderTest extends PHPUnit\Framework\TestCase
         $form1 = $this->formBuilder->password('foo');
         $form2 = $this->formBuilder->password('foo', ['class' => 'span2']);
 
-        $this->assertEquals('<input name="foo" type="password" value="">', $form1);
-        $this->assertEquals('<input class="span2" name="foo" type="password" value="">', $form2);
+        $this->assertEquals('<input name="foo" type="password">', $form1);
+        $this->assertEquals('<input class="span2" name="foo" type="password">', $form2);
     }
 
     public function testFormRange()
@@ -439,7 +439,7 @@ class FormBuilderTest extends PHPUnit\Framework\TestCase
             ['multiple']
         );
         $this->assertEquals(
-            '<select multiple name="size"><option value="0">All Sizes</option><option value="L">Large</option><option value="M" selected="selected">Medium</option><option value="S">Small</option></select>',
+            '<select multiple name="size"><option>All Sizes</option><option value="L">Large</option><option value="M" selected="selected">Medium</option><option value="S">Small</option></select>',
             $select);
 
         $select = $this->formBuilder->select(
@@ -546,7 +546,7 @@ class FormBuilderTest extends PHPUnit\Framework\TestCase
 
         $select = $this->formBuilder->select('avc', [1 => 'Yes', 0 => 'No'], true, ['placeholder' => 'Select']);
         $this->assertEquals(
-            '<select name="avc"><option value="">Select</option><option value="1" selected="selected">Yes</option><option value="0">No</option></select>',
+            '<select name="avc"><option>Select</option><option value="1" selected="selected">Yes</option><option>No</option></select>',
             $select
         );
     }
@@ -646,7 +646,7 @@ class FormBuilderTest extends PHPUnit\Framework\TestCase
           null,
           ['placeholder' => 'Select One...']
         );
-        $this->assertEquals('<select name="size"><option selected="selected" value="">Select One...</option><option value="L">Large</option><option value="S">Small</option></select>',
+        $this->assertEquals('<select name="size"><option selected="selected">Select One...</option><option value="L">Large</option><option value="S">Small</option></select>',
             $select);
 
         $select = $this->formBuilder->select(
@@ -655,7 +655,7 @@ class FormBuilderTest extends PHPUnit\Framework\TestCase
           'L',
           ['placeholder' => 'Select One...']
         );
-        $this->assertEquals('<select name="size"><option value="">Select One...</option><option value="L" selected="selected">Large</option><option value="S">Small</option></select>',
+        $this->assertEquals('<select name="size"><option>Select One...</option><option value="L" selected="selected">Large</option><option value="S">Small</option></select>',
             $select);
 
         $select = $this->formBuilder->select(
@@ -664,7 +664,7 @@ class FormBuilderTest extends PHPUnit\Framework\TestCase
             null,
             ['placeholder' => 'Select the &nbsp;']
         );
-        $this->assertEquals('<select name="encoded_html"><option selected="selected" value="">Select the &nbsp;</option><option value="no_break_space">&nbsp;</option><option value="ampersand">&amp;</option><option value="lower_than">&lt;</option></select>',
+        $this->assertEquals('<select name="encoded_html"><option selected="selected">Select the &nbsp;</option><option value="no_break_space">&nbsp;</option><option value="ampersand">&amp;</option><option value="lower_than">&lt;</option></select>',
             $select
         );
     }
@@ -799,9 +799,9 @@ class FormBuilderTest extends PHPUnit\Framework\TestCase
         $radio4 = $this->formBuilder->radio('itemB', 0);
 
         $this->assertEquals('<input checked="checked" name="itemA" type="radio" value="1">', $radio1);
-        $this->assertEquals('<input name="itemA" type="radio" value="0">', $radio2);
+        $this->assertEquals('<input name="itemA" type="radio">', $radio2);
         $this->assertEquals('<input name="itemB" type="radio" value="1">', $radio3);
-        $this->assertEquals('<input checked="checked" name="itemB" type="radio" value="0">', $radio4);
+        $this->assertEquals('<input checked="checked" name="itemB" type="radio">', $radio4);
     }
 
     public function testFormRadioRepopulation()
@@ -905,6 +905,97 @@ class FormBuilderTest extends PHPUnit\Framework\TestCase
         $input = $this->formBuilder->submit('button');
 
         $this->assertEquals('<input type="submit" value="button">', $input);
+    }
+
+    public function testWithoutCsrf()
+    {
+        $form = $this->formBuilder->withoutCsrf()->open(['method' => 'POST']);
+        $this->assertEquals('<form method="POST" action="http://localhost/foo" accept-charset="UTF-8">', $form);
+
+        $form = $this->formBuilder->open(['method' => 'POST']);
+        $this->assertEquals('<form method="POST" action="http://localhost/foo" accept-charset="UTF-8"><input name="_token" type="hidden" value="abc">', $form);
+
+        $form = $this->formBuilder->withoutCsrf(true)->open(['method' => 'POST']);
+        $this->assertEquals('<form method="POST" action="http://localhost/foo" accept-charset="UTF-8"><input name="_token" type="hidden" value="abc">', $form);
+    }
+
+    public function testOldInputIsEmpty()
+    {
+        $newBuilder = new FormBuilder($this->htmlBuilder, $this->urlGenerator, $this->viewFactory);
+        $this->assertFalse($newBuilder->oldInputIsEmpty());
+
+        $session = m::mock('Illuminate\\Contracts\\Session\\Session');
+        $session->shouldReceive('getOldInput')->once()->andReturn([]);
+        $this->formBuilder->setSessionStore($session);
+        $this->assertTrue($this->formBuilder->oldInputIsEmpty());
+
+        $session = m::mock('Illuminate\\Contracts\\Session\\Session');
+        $session->shouldReceive('getOldInput')->once()->andReturn(['foo' => 'bar']);
+        $this->formBuilder->setSessionStore($session);
+        $this->assertFalse($this->formBuilder->oldInputIsEmpty());
+    }
+
+    public function testGetIdAttribute()
+    {
+        $ref = new ReflectionMethod(FormBuilder::class, 'getIdAttribute');
+        $ref->setAccessible(true);
+
+        $this->assertEquals('explicit', $ref->invoke($this->formBuilder, 'foo', ['id' => 'explicit']));
+
+        $this->formBuilder->label('field');
+        $this->assertEquals('field', $ref->invoke($this->formBuilder, 'field', []));
+
+        $this->assertEquals('', $ref->invoke($this->formBuilder, 'other', []));
+    }
+
+    public function testGetActionMethods()
+    {
+        $routes = new RouteCollection();
+        $routes->add(new Route(['GET'], 'home', ['as' => 'home']));
+        $routes->add(new Route(['GET'], 'user/{id}', ['as' => 'user.show']));
+        $routes->add(new Route(['GET'], 'foo/{id}', ['uses' => 'FooController@bar', 'controller' => 'FooController@bar']));
+        $routes->add(new Route(['GET'], 'simple', ['uses' => 'FooController@simple', 'controller' => 'FooController@simple']));
+        $routes->refreshNameLookups();
+        $routes->refreshActionLookups();
+        $this->urlGenerator->setRoutes($routes);
+
+        $refAction = new ReflectionMethod(FormBuilder::class, 'getAction');
+        $refAction->setAccessible(true);
+        $refUrl = new ReflectionMethod(FormBuilder::class, 'getUrlAction');
+        $refUrl->setAccessible(true);
+        $refRoute = new ReflectionMethod(FormBuilder::class, 'getRouteAction');
+        $refRoute->setAccessible(true);
+        $refController = new ReflectionMethod(FormBuilder::class, 'getControllerAction');
+        $refController->setAccessible(true);
+
+        $this->assertEquals('http://localhost/bar', $refUrl->invoke($this->formBuilder, 'bar'));
+        $this->assertEquals('http://localhost/bar/baz', $refUrl->invoke($this->formBuilder, ['bar', 'baz']));
+
+        $this->assertEquals('http://localhost/user/5', $refRoute->invoke($this->formBuilder, ['user.show', 5]));
+        $this->assertEquals('http://localhost/home', $refRoute->invoke($this->formBuilder, 'home'));
+
+        $this->assertEquals('http://localhost/foo/5', $refController->invoke($this->formBuilder, ['FooController@bar', 5]));
+        $this->assertEquals('http://localhost/simple', $refController->invoke($this->formBuilder, 'FooController@simple'));
+
+        $this->assertEquals('http://localhost/bar', $refAction->invoke($this->formBuilder, ['url' => 'bar']));
+        $this->assertEquals('http://localhost/user/5', $refAction->invoke($this->formBuilder, ['route' => ['user.show', 5]]));
+        $this->assertEquals('http://localhost/simple', $refAction->invoke($this->formBuilder, ['action' => 'FooController@simple']));
+        $this->assertEquals('http://localhost/foo', $refAction->invoke($this->formBuilder, []));
+    }
+
+    public function testGetMethod()
+    {
+        $ref = new ReflectionMethod(FormBuilder::class, 'getMethod');
+        $ref->setAccessible(true);
+
+        $this->assertEquals('GET', $ref->invoke($this->formBuilder, 'get'));
+        $this->assertEquals('POST', $ref->invoke($this->formBuilder, 'put'));
+    }
+
+    public function testCallUndefinedMethodThrowsException()
+    {
+        $this->expectException(BadMethodCallException::class);
+        $this->formBuilder->thisMethodDoesNotExist();
     }
 
     protected function setModel(array $data, $object = true)
