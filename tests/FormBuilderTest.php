@@ -183,7 +183,7 @@ class FormBuilderTest extends PHPUnit\Framework\TestCase
 
         $form1 = $this->formBuilder->password('password');
 
-        $this->assertEquals('<input name="password" type="password" value="">', $form1);
+        $this->assertEquals('<input name="password" type="password">', $form1);
     }
 
     public function testFilesNotFilled()
@@ -258,8 +258,8 @@ class FormBuilderTest extends PHPUnit\Framework\TestCase
         $form1 = $this->formBuilder->password('foo');
         $form2 = $this->formBuilder->password('foo', ['class' => 'span2']);
 
-        $this->assertEquals('<input name="foo" type="password" value="">', $form1);
-        $this->assertEquals('<input class="span2" name="foo" type="password" value="">', $form2);
+        $this->assertEquals('<input name="foo" type="password">', $form1);
+        $this->assertEquals('<input class="span2" name="foo" type="password">', $form2);
     }
 
     public function testFormRange()
@@ -439,7 +439,7 @@ class FormBuilderTest extends PHPUnit\Framework\TestCase
             ['multiple']
         );
         $this->assertEquals(
-            '<select multiple name="size"><option value="0">All Sizes</option><option value="L">Large</option><option value="M" selected="selected">Medium</option><option value="S">Small</option></select>',
+            '<select multiple name="size"><option>All Sizes</option><option value="L">Large</option><option value="M" selected="selected">Medium</option><option value="S">Small</option></select>',
             $select);
 
         $select = $this->formBuilder->select(
@@ -546,7 +546,7 @@ class FormBuilderTest extends PHPUnit\Framework\TestCase
 
         $select = $this->formBuilder->select('avc', [1 => 'Yes', 0 => 'No'], true, ['placeholder' => 'Select']);
         $this->assertEquals(
-            '<select name="avc"><option value="">Select</option><option value="1" selected="selected">Yes</option><option value="0">No</option></select>',
+            '<select name="avc"><option>Select</option><option value="1" selected="selected">Yes</option><option>No</option></select>',
             $select
         );
     }
@@ -646,7 +646,7 @@ class FormBuilderTest extends PHPUnit\Framework\TestCase
           null,
           ['placeholder' => 'Select One...']
         );
-        $this->assertEquals('<select name="size"><option selected="selected" value="">Select One...</option><option value="L">Large</option><option value="S">Small</option></select>',
+        $this->assertEquals('<select name="size"><option selected="selected">Select One...</option><option value="L">Large</option><option value="S">Small</option></select>',
             $select);
 
         $select = $this->formBuilder->select(
@@ -655,7 +655,7 @@ class FormBuilderTest extends PHPUnit\Framework\TestCase
           'L',
           ['placeholder' => 'Select One...']
         );
-        $this->assertEquals('<select name="size"><option value="">Select One...</option><option value="L" selected="selected">Large</option><option value="S">Small</option></select>',
+        $this->assertEquals('<select name="size"><option>Select One...</option><option value="L" selected="selected">Large</option><option value="S">Small</option></select>',
             $select);
 
         $select = $this->formBuilder->select(
@@ -664,7 +664,7 @@ class FormBuilderTest extends PHPUnit\Framework\TestCase
             null,
             ['placeholder' => 'Select the &nbsp;']
         );
-        $this->assertEquals('<select name="encoded_html"><option selected="selected" value="">Select the &nbsp;</option><option value="no_break_space">&nbsp;</option><option value="ampersand">&amp;</option><option value="lower_than">&lt;</option></select>',
+        $this->assertEquals('<select name="encoded_html"><option selected="selected">Select the &nbsp;</option><option value="no_break_space">&nbsp;</option><option value="ampersand">&amp;</option><option value="lower_than">&lt;</option></select>',
             $select
         );
     }
@@ -799,9 +799,9 @@ class FormBuilderTest extends PHPUnit\Framework\TestCase
         $radio4 = $this->formBuilder->radio('itemB', 0);
 
         $this->assertEquals('<input checked="checked" name="itemA" type="radio" value="1">', $radio1);
-        $this->assertEquals('<input name="itemA" type="radio" value="0">', $radio2);
+        $this->assertEquals('<input name="itemA" type="radio">', $radio2);
         $this->assertEquals('<input name="itemB" type="radio" value="1">', $radio3);
-        $this->assertEquals('<input checked="checked" name="itemB" type="radio" value="0">', $radio4);
+        $this->assertEquals('<input checked="checked" name="itemB" type="radio">', $radio4);
     }
 
     public function testFormRadioRepopulation()
