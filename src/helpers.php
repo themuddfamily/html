@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 use Illuminate\Support\HtmlString;
 
@@ -31,7 +32,7 @@ if (! function_exists('link_to_asset')) {
      *
      * @return string
      */
-    function link_to_asset(string $url, string|null $title = null, array $attributes = [], bool|null $secure = null): string
+    function link_to_asset(string $url, string|null $title = null, array $attributes = [], bool|null $secure = null): HtmlString|string
     {
         return app('html')->linkAsset($url, $title, $attributes, $secure);
     }
