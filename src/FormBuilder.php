@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace LaravelLux\Html;
 
@@ -318,7 +319,7 @@ class FormBuilder
      *
      * @return string|HtmlString
      */
-    public function input(string $type, string|null $name, string|null $value = null, array $options = []): string|HtmlString
+    public function input(string $type, string|null $name, int|string|null $value = null, array $options = []): string|HtmlString
     {
         $this->type = $type;
 
@@ -771,15 +772,15 @@ class FormBuilder
     /**
      * Get the select option for the given value.
      *
-     * @param string|array|Collection $display
-     * @param string $value
-     * @param string|array|Collection|null $selected
+     * @param string|int|array|Collection $display
+     * @param string|int $value
+     * @param string|array|bool|Collection|null $selected
      * @param array $attributes
      * @param array $optgroupAttributes
      *
      * @return HtmlString|string
      */
-    public function getSelectOption(string|array|Collection $display, string|int $value, string|array|Collection|null $selected, array $attributes = [], array $optgroupAttributes = []): HtmlString|string
+    public function getSelectOption(string|int|array|Collection $display, string|int $value, string|array|bool|Collection|null $selected, array $attributes = [], array $optgroupAttributes = []): HtmlString|string
     {
         if (is_iterable($display)) {
             return $this->optionGroup($display, $value, $selected, $optgroupAttributes, $attributes);
@@ -818,14 +819,14 @@ class FormBuilder
     /**
      * Create a select element option.
      *
-     * @param string|null $display
-     * @param string $value
-     * @param string|array|Collection|null $selected
+     * @param string|int|null $display
+     * @param string|int $value
+     * @param string|array|bool|Collection|null $selected
      * @param array $attributes
      *
      * @return HtmlString|string
      */
-    protected function option(string|null $display, string|int $value, string|array|Collection|null $selected = null, array $attributes = []): HtmlString|string
+    protected function option(string|int|null $display, string|int $value, string|array|bool|Collection|null $selected = null, array $attributes = []): HtmlString|string
     {
         $selected = $this->getSelectedValue($value, $selected);
 
@@ -863,11 +864,11 @@ class FormBuilder
      * Determine if the value is selected.
      *
      * @param string|int|bool $value
-     * @param string|array|Collection|null $selected
+     * @param string|array|bool|Collection|null $selected
      *
      * @return bool|string|null
      */
-    protected function getSelectedValue(string|int|bool|null $value, string|array|Collection|null $selected): bool|string|null
+    protected function getSelectedValue(string|int|bool|null $value, string|array|bool|Collection|null $selected): bool|string|null
     {
         if (is_array($selected)) {
             return in_array($value, $selected, true) || in_array((string) $value, $selected, true) ? 'selected' : null;
@@ -875,7 +876,7 @@ class FormBuilder
             return $selected->contains($value) ? 'selected' : null;
         }
         if (is_int($value) && is_bool($selected)) {
-            return (bool)$value === $selected;
+            return ((bool) $value === $selected) ? 'selected' : null;
         }
         return ((string) $value === (string) $selected) ? 'selected' : null;
     }
@@ -1018,7 +1019,7 @@ class FormBuilder
      * @param string $value
      * @return bool
      */
-    protected function compareValues(string $name, string $value): bool
+    protected function compareValues(string $name, string|int $value): bool
     {
         return $this->getValueAttribute($name) == $value;
     }
@@ -1331,7 +1332,7 @@ class FormBuilder
      *
      * @return mixed
      */
-    public function getValueAttribute(string|null $name, string|null|array|Collection $value = null): mixed
+    public function getValueAttribute(string|null $name, string|int|array|bool|null|Collection $value = null): mixed
     {
         if (is_null($name)) {
             return $value;
@@ -1384,9 +1385,9 @@ class FormBuilder
     /**
      * Get value from current Request
      * @param $name
-     * @return array|null|string
+     * @return array|int|string|null
      */
-    protected function request($name): array|string|null
+    protected function request($name): array|int|string|null
     {
         if (!$this->considerRequest) {
             return null;
