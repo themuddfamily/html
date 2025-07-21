@@ -91,5 +91,38 @@ return [
         'color' => [],
         'submit' => [],
         'button' => []
-    ]
+    ],
+
+    /*
+     * Named presets for common CSS frameworks. These presets define
+     * default classes that will be merged into generated elements when
+     * applied via FormBuilder::setPreset().
+     */
+    'presets' => [
+        'bootstrap' => [
+            'all' => [
+                'class' => ['form-control'],
+            ],
+            'submit' => [
+                'class' => ['btn', 'btn-primary'],
+            ],
+            'button' => [
+                'class' => ['btn', 'btn-secondary'],
+            ],
+        ],
+        'tailwind' => [
+            'all' => [
+                'class' => ['border', 'p-2', 'rounded'],
+            ],
+            'submit' => [
+                'class' => ['bg-blue-500', 'text-white', 'p-2', 'rounded'],
+            ],
+            'button' => [
+                'class' => ['bg-gray-500', 'text-white', 'p-2', 'rounded'],
+            ],
+        ],
+    ],
+
+    // Preset that should be applied by default. Set to null for none.
+    'default_preset' => null,
 ];

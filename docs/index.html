@@ -56,6 +56,7 @@
                         <li class="hover:bg-gray-300"><a href="#buttons" class="block py-1 px-2 text-gray-900">Buttons</a></li>
                         <li class="hover:bg-gray-300"><a href="#custom-macros" class="block py-1 px-2 text-gray-900">Custom Macros</a></li>
                         <li class="hover:bg-gray-300"><a href="#custom-components" class="block py-1 px-2 text-gray-900">Custom Components</a></li>
+                        <li class="hover:bg-gray-300"><a href="#css-presets" class="block py-1 px-2 text-gray-900">CSS Presets</a></li>
                         <li class="hover:bg-gray-300"><a href="#generating-urls" class="block py-1 px-2 text-gray-900">Generating URLs</a></li>
                     </ul>
                 </nav>
@@ -548,6 +549,33 @@ class User extends Model
 &lt;input type="text" name="first_name" value="" class="form-control"&gt;
 &lt;/div&gt;</code></pre>
                     <button class="md:inline hidden copyBtn absolute right-2 top-2" aria-label="Copy to Clipboard" title="Copy to Clipboard" data-clipboard-target="#code43">
+                    </button>
+                </div>
+
+                <a id="css-presets"></a>
+                <div class="font-bold text-2xl mt-10">CSS Presets</div>
+                <p class="my-2">
+                    Presets allow you to automatically apply CSS classes to every generated input.
+                    Define them in <code>config/html-forms.php</code> and enable one at runtime.
+                </p>
+                <div class="relative my-2 bg-gray-800 text-white rounded-md pr-10">
+                    <pre class="p-2 overflow-x-auto"><code id="codePreset1">'presets' =&gt; [
+    'bootstrap' =&gt; [
+        'all' =&gt; ['class' =&gt; ['form-control']],
+        'submit' =&gt; ['class' =&gt; ['btn', 'btn-primary']],
+    ],
+]</code></pre>
+                    <button class="md:inline hidden copyBtn absolute right-2 top-2" aria-label="Copy to Clipboard" title="Copy to Clipboard" data-clipboard-target="#codePreset1">
+                    </button>
+                </div>
+                <div class="relative my-2 bg-gray-800 text-white rounded-md pr-10">
+                    <pre class="p-2 overflow-x-auto"><code id="codePreset2">Form::setPreset('bootstrap');</code></pre>
+                    <button class="md:inline hidden copyBtn absolute right-2 top-2" aria-label="Copy to Clipboard" title="Copy to Clipboard" data-clipboard-target="#codePreset2">
+                    </button>
+                </div>
+                <div class="relative my-2 bg-gray-800 text-white rounded-md pr-10">
+                    <pre class="p-2 overflow-x-auto"><code id="codePreset3">Form::addPreset('custom', ['all' =&gt; ['class' =&gt; ['my-class']]]);</code></pre>
+                    <button class="md:inline hidden copyBtn absolute right-2 top-2" aria-label="Copy to Clipboard" title="Copy to Clipboard" data-clipboard-target="#codePreset3">
                     </button>
                 </div>
 

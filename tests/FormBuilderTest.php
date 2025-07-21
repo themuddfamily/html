@@ -998,6 +998,22 @@ class FormBuilderTest extends PHPUnit\Framework\TestCase
         $this->formBuilder->thisMethodDoesNotExist();
     }
 
+    public function testPresetClassesAreApplied()
+    {
+        $this->formBuilder->addPreset('test', [
+            'all' => ['class' => ['preset']],
+            'submit' => ['class' => ['btn']],
+        ]);
+
+        $this->formBuilder->setPreset('test');
+
+        $text = $this->formBuilder->text('foo');
+        $submit = $this->formBuilder->submit('Save');
+
+        $this->assertEquals('<input name="foo" type="text" class="preset">', $text);
+        $this->assertEquals('<input type="submit" value="Save" class="btn preset">', $submit);
+    }
+
     protected function setModel(array $data, $object = true)
     {
         if ($object) {

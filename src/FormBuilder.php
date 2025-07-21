@@ -108,6 +108,20 @@ class FormBuilder
      */
     protected array $skipValueTypes = ['file', 'password', 'checkbox', 'radio'];
 
+    /**
+     * Available CSS presets loaded from configuration.
+     *
+     * @var array
+     */
+    protected array $presets = [];
+
+    /**
+     * Currently active preset name.
+     *
+     * @var string|null
+     */
+    protected ?string $currentPreset = null;
+
 
     /**
      * Input Type.
@@ -138,6 +152,8 @@ class FormBuilder
         $this->view = $view;
         $this->csrfToken = $csrfToken;
         $this->request = $request;
+        $this->presets = config('html-forms.presets', []);
+        $this->currentPreset = config('html-forms.default_preset');
     }
 
     /**
@@ -184,6 +200,9 @@ class FormBuilder
           $attributes, Arr::except($options, $this->reserved)
 
         );
+
+        // Apply preset defaults before rendering.
+        $attributes = $this->applyPreset('form', $attributes);
 
         /**
         ** Finally, we will concatenate all the attributes into a single string so
@@ -285,6 +304,7 @@ class FormBuilder
     {
         $this->labels[] = $name;
 
+        $options = $this->applyPreset('label', $options);
         $options = $this->html->attributes($options, 'label');
 
         $value = $this->formatLabel($name, $value);
@@ -342,6 +362,8 @@ class FormBuilder
         $merge = compact('type', 'value', 'id');
 
         $options = array_merge($options, $merge);
+
+        $options = $this->applyPreset($type, $options);
 
         return $this->toHtmlString('<input' . $this->html->attributes($options, $type) . '>');
     }
@@ -610,6 +632,7 @@ class FormBuilder
          * the size attribute, as it was merely a short-cut for the rows and cols on
          * the element. Then we'll create the final textarea elements HTML for us.
          **/
+        $options = $this->applyPreset('textarea', $options);
         $options = $this->html->attributes($options, 'textarea');
 
         return $this->toHtmlString('<textarea' . $options . '>' . e($value, false). '</textarea>');
@@ -707,6 +730,7 @@ class FormBuilder
         // Once we have all of this HTML, we can join this into a single element after
         // formatting the attributes into an HTML "attributes" string, then we will
         // build out a final select statement, which will contain all the values.
+        $selectAttributes = $this->applyPreset('select', $selectAttributes);
         $selectAttributes = $this->html->attributes($selectAttributes, 'select');
 
         $list = implode('', $html);
@@ -1124,6 +1148,8 @@ class FormBuilder
             $options['type'] = 'button';
         }
 
+        $options = $this->applyPreset('button', $options);
+
         return $this->toHtmlString('<button' . $this->html->attributes($options, 'button') . '>' . $value . '</button>');
     }
 
@@ -1153,6 +1179,7 @@ class FormBuilder
             }
         }
 
+        $attributes = $this->applyPreset('datalist', $attributes);
         $attributes = $this->html->attributes($attributes, 'datalist');
 
         $list = implode('', $html);
@@ -1482,6 +1509,58 @@ class FormBuilder
     protected function toHtmlString($html): HtmlString
     {
         return new HtmlString($html);
+    }
+
+    /**
+     * Register a new CSS preset.
+     */
+    public function addPreset(string $name, array $preset): static
+    {
+        $this->presets[$name] = $preset;
+
+        return $this;
+    }
+
+    /**
+     * Activate a preset by name. Use null to disable presets.
+     */
+    public function setPreset(?string $name): static
+    {
+        $this->currentPreset = $name;
+
+        return $this;
+    }
+
+    /**
+     * Apply the currently selected preset to the element attributes.
+     */
+    protected function applyPreset(string $type, array $attributes = null): array
+    {
+        $attributes = $attributes ?? [];
+
+        if ($this->currentPreset && isset($this->presets[$this->currentPreset])) {
+            $preset = $this->presets[$this->currentPreset];
+
+            foreach (['all', $type] as $section) {
+                if (!isset($preset[$section])) {
+                    continue;
+                }
+                foreach ($preset[$section] as $key => $value) {
+                    if ($key === 'class') {
+                        $current = $attributes['class'] ?? [];
+                        if (!is_array($current)) {
+                            $current = array_filter(explode(' ', (string) $current));
+                        }
+                        $vals = is_array($value) ? $value : array_filter(explode(' ', (string) $value));
+                        $attributes['class'] = array_values(array_unique(array_merge($vals, $current)));
+                    } else {
+                        $attributes[$key] = $attributes[$key] ?? $value;
+                    }
+                }
+            }
+        }
+
+        return $attributes;
     }
 
     /**
