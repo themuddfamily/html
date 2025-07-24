@@ -998,6 +998,24 @@ class FormBuilderTest extends PHPUnit\Framework\TestCase
         $this->formBuilder->thisMethodDoesNotExist();
     }
 
+    public function testTransformKeyWithNestedArrayKeys()
+    {
+        $ref = new ReflectionMethod(FormBuilder::class, 'transformKey');
+        $ref->setAccessible(true);
+
+        $result = $ref->invoke($this->formBuilder, 'foo[bar][baz]');
+
+        $this->assertEquals('foo.bar.baz', $result);
+    }
+
+    public function testSetAndGetSessionStore()
+    {
+        $store = new Store('test', new SessionHandler());
+        $this->formBuilder->setSessionStore($store);
+
+        $this->assertSame($store, $this->formBuilder->getSessionStore());
+    }
+
     public function testPresetClassesAreApplied()
     {
         $this->formBuilder->addPreset('test', [
