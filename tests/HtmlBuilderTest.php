@@ -228,4 +228,10 @@ class HtmlBuilderTest extends PHPUnit\Framework\TestCase
         $this->assertEquals('person&#64;example.com', $builder->email('person@example.com'));
         $this->assertEquals('&nbsp;&nbsp;&nbsp;', $this->htmlBuilder->nbsp(3));
     }
+
+    public function testCallUndefinedMethodThrowsException()
+    {
+        $this->expectException(BadMethodCallException::class);
+        $this->htmlBuilder->nonExisting();
+    }
 }
