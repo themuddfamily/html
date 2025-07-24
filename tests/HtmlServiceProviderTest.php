@@ -28,6 +28,21 @@ class SimpleConfig
 }
 
 
+class TestContainer extends Container
+{
+    protected bool $console = false;
+
+    public function runningInConsole(): bool
+    {
+        return $this->console;
+    }
+
+    public function setConsole(bool $console): void
+    {
+        $this->console = $console;
+    }
+}
+
 class HtmlServiceProviderStub extends HtmlServiceProvider
 {
     public function __construct($app)
@@ -36,15 +51,30 @@ class HtmlServiceProviderStub extends HtmlServiceProvider
     }
 }
 
+class HtmlServiceProviderPublishStub extends HtmlServiceProvider
+{
+    public array $published = [];
+
+    public function __construct($app)
+    {
+        $this->app = $app;
+    }
+
+    protected function publishes(array $paths, $group = null)
+    {
+        $this->published = $paths;
+    }
+}
+
 #[\AllowDynamicProperties]
 class HtmlServiceProviderTest extends PHPUnit\Framework\TestCase
 {
-    protected Container $app;
+    protected TestContainer $app;
     protected $blade;
 
     protected function setUp(): void
     {
-        $this->app = new Container();
+        $this->app = new TestContainer();
         $this->app->instance('config', new SimpleConfig());
         $this->app->instance('view', m::mock(Factory::class));
 
@@ -106,6 +136,28 @@ class HtmlServiceProviderTest extends PHPUnit\Framework\TestCase
         $this->assertArrayHasKey('form_open', $directives);
         $this->assertIsCallable($directives['form_open']);
         $this->assertEquals('<?php echo Form::open(); ?>', $directives['form_open'](''));
+    }
+
+    public function testBootPublishesConfigurationAndProvidesServices()
+    {
+        if (!function_exists('config_path')) {
+            function config_path($path = '') { return '/config/'.$path; }
+        }
+
+        $this->app->setConsole(true);
+
+        $provider = new HtmlServiceProviderPublishStub($this->app);
+        $provider->boot();
+
+        $expected = [dirname(__DIR__).'/src/../config/html-forms.php' => config_path('html-forms.php')];
+        $this->assertEquals($expected, $provider->published);
+
+        $this->assertEquals([
+            'html',
+            'form',
+            HtmlBuilder::class,
+            FormBuilder::class,
+        ], $provider->provides());
     }
 }
 
