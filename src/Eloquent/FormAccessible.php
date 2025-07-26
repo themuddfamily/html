@@ -114,7 +114,7 @@ trait FormAccessible
      *
      * @return mixed
      */
-    private function mutateFormAttribute($key, $value)
+    private function mutateFormAttribute($key, $value): mixed
     {
         return $this->{'form' . Str::studly($key) . 'Attribute'}($value);
     }
@@ -123,7 +123,7 @@ trait FormAccessible
      * Get a ReflectionClass Instance
      * @return ReflectionClass
      */
-    protected function getReflection()
+    protected function getReflection(): ReflectionClass
     {
         if (! $this->reflection) {
             $this->reflection = new ReflectionClass($this);
