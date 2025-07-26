@@ -10,3 +10,11 @@
 
 Official documentation for Forms & Html for The Laravel Framework can be found at the [Laravel Lux by WebSE](https://website.com.se/) website.
 See the [configuration section](docs/index.html#configuration) for details on available options.
+
+## Testing
+
+Run the test suite using Composer:
+
+```
+composer test
+```
