@@ -37,7 +37,7 @@ class DummyReflectionModel extends Model
 
     public int $reflectionCount = 0;
 
-    protected function getReflection()
+    protected function getReflection(): \ReflectionClass
     {
         if (! $this->reflection) {
             $this->reflectionCount++;
